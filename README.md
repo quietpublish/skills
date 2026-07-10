@@ -14,6 +14,8 @@ Each skill is a folder with a `SKILL.md` (the instructions the agent follows) pl
 | **[tui-screenshots](tui-screenshots/)** | Capture deterministic screenshots (and GIFs) of a terminal UI / CLI app with [vhs](https://github.com/charmbracelet/vhs). Standalone. | [README](tui-screenshots/README.md) |
 
 > `meeting-wrapup` orchestrates `meeting-summary` and `documenting-video`, so if you install it, install all three.
+>
+> 👀 **See it in action:** [an example summary PDF](meeting-wrapup/example/example-summary.pdf) this workflow generated from a real episode.
 
 ## Installing a skill
 

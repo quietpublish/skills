@@ -4,6 +4,10 @@ Turn a meeting recording into a polished, shareable summary — **transcript →
 
 It's built for any recorded session: podcasts, workshops, retros, all-hands, open forums, standups.
 
+## Example output
+
+See a real summary this skill produced: **[example-summary.pdf](example/example-summary.pdf)** — generated live during an episode of *Reflective Practice Radio* (transcript → speaker-attributed summary → embedded screenshots → PDF).
+
 ## What it does
 
 | Phase | Output |
