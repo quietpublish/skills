@@ -1,0 +1,24 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Secrets — never commit
+.env
+.env.local
+*.key
+*-secrets*
+
+# Local run artifacts (if you test the skills inside a clone)
+*.mp4
+*.mp3
+*.wav
+audio.wav
+deepgram*.json
+summary.pdf
+summary.html
+screenshots/
