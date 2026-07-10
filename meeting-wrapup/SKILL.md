@@ -33,6 +33,7 @@ Use the directory from `$ARGUMENTS`. If no argument is given, ask the user which
      ```bash
      /usr/bin/python3 ~/.claude/skills/meeting-wrapup/scripts/transcribe.py <directory>
      ```
+   - **Offline / no API key:** add `--local` (`transcribe.py --local <directory>`) to transcribe on-device with Whisper instead of Deepgram — private and free, but **no speaker diarization or confidence data** (a single stream to attribute manually). Requires `pip install openai-whisper`.
    - This chains `analyze-speakers.py` automatically, producing:
      - `deepgram.json` — raw Deepgram response
      - `deepgram-transcript.md` — readable transcript with `[LOW CONFIDENCE]` markers
@@ -153,6 +154,6 @@ This skill should complete as much as possible even when tools are missing:
 - **WeasyPrint not installed** → PDF can't be built; offer `--html` (HTML uses Pandoc only, not WeasyPrint) as an alternative deliverable
 - **Pandoc not installed** → neither PDF nor HTML can be built; the markdown summary is the deliverable
 - **User declines screenshots** → skip Phase 3, go straight to Checkpoint 2
-- **No Deepgram API key** → suggest Whisper as fallback (if installed)
+- **No Deepgram API key** → transcribe offline with `transcribe.py --local` (Whisper; `pip install openai-whisper`). Note it yields **no diarization or confidence data** — a single stream to attribute manually.
 
 Always tell the user what was skipped and why.

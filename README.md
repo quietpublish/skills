@@ -11,12 +11,15 @@ Each skill is a folder with a `SKILL.md` (the instructions the agent follows) pl
 | **[meeting-wrapup](meeting-wrapup/)** | Full post-meeting pipeline: transcribe a recording → speaker-attributed summary → screenshots → PDF, with two human review checkpoints. | [README](meeting-wrapup/README.md) |
 | **[meeting-summary](meeting-summary/)** | Turn any meeting transcript into a clean, structured summary. Standalone, or used by `meeting-wrapup`. | [README](meeting-summary/README.md) |
 | **[documenting-video](documenting-video/)** | Turn a video (file or URL) into markdown documentation with inline screenshots captured at the right moments. Standalone, or used by `meeting-wrapup`. | [README](documenting-video/README.md) |
+| **[tui-screenshots](tui-screenshots/)** | Capture deterministic screenshots (and GIFs) of a terminal UI / CLI app with [vhs](https://github.com/charmbracelet/vhs). Standalone. | [README](tui-screenshots/README.md) |
 
-> `meeting-wrapup` orchestrates the other two, so if you install it, install all three.
+> `meeting-wrapup` orchestrates `meeting-summary` and `documenting-video`, so if you install it, install all three.
 
 ## Installing a skill
 
 Claude Code loads personal skills from `~/.claude/skills/<skill-name>/`. To install any skill here, copy its folder there.
+
+> **Full walkthrough (dependencies included), human- or agent-driven:** see **[INSTALL.md](INSTALL.md)**.
 
 **Option A — clone and copy:**
 ```bash

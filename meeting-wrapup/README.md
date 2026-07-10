@@ -31,6 +31,7 @@ The workflow degrades gracefully: no audio → use an existing transcript; no vi
 | **Python 3.8+** | all scripts | preinstalled on macOS; else your package manager |
 | **`deepgram-sdk`** | transcription | `pip install deepgram-sdk` |
 | **A Deepgram API key** | transcription | free credits at [deepgram.com](https://deepgram.com/) |
+| **`openai-whisper`** | offline transcription *(optional; no key needed)* | `pip install openai-whisper` |
 | **ffmpeg** | audio extraction + screenshots | `brew install ffmpeg` |
 | **pandoc + WeasyPrint** | PDF export *(optional)* | `brew install pandoc weasyprint` |
 | **A Chromium browser** | screenshot fallback *(optional)* | only if a video isn't local/ffmpeg-able |
@@ -90,3 +91,4 @@ summary.html                   # only if you build with --html
 - **HTML is opt-in.** `build-pdf.sh` produces only the PDF by default; pass `--html` to also emit a self-contained `summary.html`.
 - **Screenshots prefer ffmpeg.** For a local video file, frames are extracted directly with ffmpeg (deterministic, fast). The browser-based capture path is a fallback for web-hosted/DRM video.
 - **Reuses existing transcripts.** If you already have a transcript (e.g. from a tool like MacWhisper), drop it in the folder — the workflow will offer to use it and skip the Deepgram step.
+- **Offline transcription.** No Deepgram key, or a private/secure meeting? Run `transcribe.py --local` to transcribe on-device with Whisper (`pip install openai-whisper`) — no cloud, no cost. Trade-off: **no speaker diarization or confidence scoring** (a single stream you attribute manually).

@@ -54,6 +54,7 @@ def load_api_key(target_dir: Path):
     print("Set it as an environment variable, or create .env.local with:")
     print("  DEEPGRAM_API_KEY=your_key_here")
     print(f"Searched: {', '.join(str(p) for p in search_paths)}")
+    print("\nNo key? Transcribe offline instead:  python3 transcribe.py --local <directory>")
     sys.exit(1)
 
 
@@ -178,16 +179,135 @@ def run_analyze(target_dir):
         print("Warning: analyze script exited with errors.")
 
 
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: python3 transcribe.py <directory>")
-        print("Example: python3 transcribe.py /path/to/meeting-folder")
+# ---------------------------------------------------------------------------
+# Local transcription (offline fallback via OpenAI Whisper — no API, no cloud)
+# ---------------------------------------------------------------------------
+
+def _fmt_ts(seconds: float) -> str:
+    total = int(seconds)
+    return f"{total // 60}:{total % 60:02d}"
+
+
+def transcribe_local(audio_path, model_size: str):
+    """Transcribe locally with Whisper. No diarization (single stream)."""
+    try:
+        import whisper
+    except ImportError:
+        print("Error: openai-whisper is not installed (needed for --local).")
+        print("Install with: pip install openai-whisper")
+        print("Or use Deepgram instead by setting DEEPGRAM_API_KEY.")
         sys.exit(1)
 
-    target_dir = Path(sys.argv[1]).resolve()
+    file_size_mb = audio_path.stat().st_size / (1024 * 1024)
+    print(f"\nTranscribing {audio_path.name} ({file_size_mb:.1f} MB) locally with "
+          f"Whisper '{model_size}'.")
+    print("This runs entirely offline and can take several minutes on CPU.")
+
+    start_time = time.time()
+    model = whisper.load_model(model_size)
+    result = model.transcribe(str(audio_path), verbose=False)
+    print(f"Local transcription complete in {time.time() - start_time:.0f}s.")
+    return result
+
+
+def write_local_outputs(result, target_dir, audio_name: str):
+    """Write a transcript + stub confidence report so the rest of the pipeline
+    flows. Local mode has no speaker diarization or confidence data."""
+    segments = result.get("segments", []) or []
+
+    tlines = [
+        f"# Transcript — {target_dir.name}",
+        "",
+        f"**Source:** {audio_name} | **Transcription:** local Whisper "
+        "(offline; **no speaker diarization**)",
+        "",
+        "> Local transcription produces a single undifferentiated stream — there is **no**",
+        "> speaker attribution or confidence scoring. Assign speakers manually from context,",
+        "> or set `DEEPGRAM_API_KEY` and re-run for diarized output.",
+        "",
+        "---",
+        "",
+    ]
+    for seg in segments:
+        tlines.append(f"**[{_fmt_ts(seg.get('start', 0.0))}]**")
+        tlines.append("")
+        tlines.append((seg.get("text") or "").strip())
+        tlines.append("")
+    transcript_path = target_dir / "deepgram-transcript.md"
+    transcript_path.write_text("\n".join(tlines) + "\n", encoding="utf-8")
+
+    rlines = [
+        "# Speaker Confidence Report",
+        "",
+        "## Speaker Map",
+        "",
+        "Local Whisper transcription — **no diarization was performed**; speakers were "
+        "not separated.",
+        "",
+        "## Notes",
+        "",
+        "- No confidence data (local, offline transcription).",
+        "- All text is a single stream — attribute speakers manually before publishing.",
+        f"- Segments: {len(segments):,}",
+        "",
+    ]
+    (target_dir / "speaker-confidence-report.md").write_text(
+        "\n".join(rlines) + "\n", encoding="utf-8"
+    )
+
+    print(f"\nWritten: {transcript_path}")
+    print(f"Written: {target_dir / 'speaker-confidence-report.md'}")
+    print(f"Segments: {len(segments):,}")
+
+
+def run_local(target_dir, model_size: str):
+    audio_path = find_audio(target_dir)
+    result = transcribe_local(audio_path, model_size)
+    write_local_outputs(result, target_dir, audio_path.name)
+    print("\nDone (local transcription — no diarization).")
+
+
+USAGE = ("Usage: python3 transcribe.py [--local [--model SIZE]] <directory>\n"
+         "  Default: transcribe via Deepgram (needs DEEPGRAM_API_KEY).\n"
+         "  --local: transcribe offline with Whisper (no API; no diarization).\n"
+         "  --model: Whisper size (default: base). tiny|base|small|medium|large")
+
+
+def main():
+    args = sys.argv[1:]
+    use_local = False
+    model_size = "base"
+    positional = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in ("--local", "--offline"):
+            use_local = True
+        elif a == "--model":
+            i += 1
+            if i >= len(args):
+                print("Error: --model requires a value (tiny|base|small|medium|large).")
+                sys.exit(1)
+            model_size = args[i]
+        elif a in ("-h", "--help"):
+            print(USAGE)
+            sys.exit(0)
+        else:
+            positional.append(a)
+        i += 1
+
+    if len(positional) != 1:
+        print(USAGE)
+        sys.exit(1)
+
+    target_dir = Path(positional[0]).resolve()
     if not target_dir.is_dir():
         print(f"Error: directory not found: {target_dir}")
         sys.exit(1)
+
+    if use_local:
+        run_local(target_dir, model_size)
+        return
 
     output_path = target_dir / "deepgram.json"
 
